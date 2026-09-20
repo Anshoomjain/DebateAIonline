@@ -15,7 +15,7 @@ from core.interfaces import BaseAgent, Document, DebateState
 
 # Initialize Gemini client once at module level
 genai.configure(api_key=os.environ.get("GEMINI_API_KEY", ""))
-_model = genai.GenerativeModel("gemini-3.6-flash")
+_model = genai.GenerativeModel(""gemini-3.1-flash-lite")
 
 
 class ProAgent(BaseAgent):
