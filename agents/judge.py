@@ -1,281 +1,136 @@
 """
 Judge Agent - Balanced Synthesizer
 ===================================
-Creates final verdict and calculates trust score.
-
+Now powered by Google Gemini API (free tier).
+Uses gemini-1.5-pro for better reasoning on synthesis.
 """
 
-from typing import List, Optional
-import ollama
+import os
 import re
+import time
+from typing import List, Optional
+import google.generativeai as genai
 
 from core.interfaces import BaseAgent, Document, DebateState
 
 
+genai.configure(api_key=os.environ.get("GEMINI_API_KEY", "AQ.Ab8RN6KTU8HJz9wkm3lsgipf2lHW5dz2vgRlBOXPxtBaz-RTHA"))
+# Using flash for judge too to stay within free limits
+_model = genai.GenerativeModel("gemini-1.5-flash")
+
+
 class JudgeAgent(BaseAgent):
-    """
-    Judge Agent synthesizes Pro and Con arguments.
-    Provides balanced verdict and trust score.
-    """
-    
+    """Judge Agent synthesizes Pro and Con arguments."""
+
     def __init__(self):
         super().__init__(
             name="judge",
-            model="llama3.1:8b",
+            model="gemini-1.5-flash",
             role="Balanced synthesizer and judge"
         )
-        
-        print(f"✓ JudgeAgent initialized:")
-        print(f"  - Model: {self.model}")
-        print(f"  - Role: {self.role}")
-    
-    def generate(self, query: str, context: List[Document], 
+        print(f"✓ JudgeAgent initialized (Gemini)")
+
+    def generate(self, query: str, context: List[Document],
                  debate_state: Optional[DebateState] = None) -> str:
-        """
-        Generate final verdict synthesizing both sides.
-        
-        Args:
-            query: User's question
-            context: Retrieved documents
-            debate_state: Debate state with Pro/Con arguments
-            
-        Returns:
-            Judge's verdict and recommendation
-        """
+
         if not debate_state or not debate_state.rounds:
             return "[Error: No debate to judge]"
-        
-        # Get Pro and Con arguments
+
         pro_args = self._get_arguments(debate_state, 'pro')
         con_args = self._get_arguments(debate_state, 'con')
-        
-        # Format context
         context_text = self.format_context(context)
-        
-        # Build prompt
         prompt = self._build_prompt(query, context_text, pro_args, con_args)
-        
-        # Generate response
-        max_retries = 3
-        for attempt in range(max_retries):
+
+        for attempt in range(3):
             try:
-                response = ollama.generate(
-                    model=self.model,
-                    prompt=prompt,
-                    options={
-                        'temperature': 0.2,  # Very low for balanced judgment
-                        'num_predict': 800,  # Longer response
-                    }
+                response = _model.generate_content(
+                    self.system_prompt + "\n\n" + prompt,
+                    generation_config=genai.types.GenerationConfig(
+                        temperature=0.2,
+                        max_output_tokens=800,
+                    )
                 )
-                
-                verdict_text = response['response'].strip()
-                
-                # Calculate trust score
+                verdict_text = response.text.strip()
+
                 trust_score = self._calculate_trust_score(
-                    pro_args, con_args, verdict_text, context
+                    pro_args, con_args, context
                 )
-                
-                # Update debate state
+
                 if debate_state:
                     debate_state.trust_score = trust_score
                     debate_state.verdict = self._extract_verdict(verdict_text)
-                
-                # Add trust score to output
-                final_output = f"{verdict_text}\n\n{'='*60}\nTRUST SCORE: {trust_score:.1f}%\n{'='*60}"
-                
-                return final_output
-                
-            except Exception as e:
-                if attempt < max_retries - 1:
-                    print(f"⚠ Attempt {attempt + 1} failed, retrying...")
-                    # Wait a bit before retry
-                    import time
-                    time.sleep(2)
-                    # Clear GPU memory
-                    try:
-                        import torch
-                        if torch.cuda.is_available():
-                            torch.cuda.empty_cache()
-                    except:
-                        pass
-                else:
-                    return f"[Error: Failed after {max_retries} attempts: {e}]"
-    
-    def _build_prompt(self, query: str, context: str, 
-                     pro_args: str, con_args: str) -> str:
-        """Build judgment prompt"""
-        return f"""{self.system_prompt}
 
-CONTEXT DOCUMENTS:
+                return (
+                    f"{verdict_text}\n\n"
+                    f"{'='*60}\nTRUST SCORE: {trust_score:.1f}%\n{'='*60}"
+                )
+
+            except Exception as e:
+                if attempt < 2:
+                    time.sleep(2)
+                else:
+                    return f"[Error: Judge Agent failed: {e}]"
+
+    def _build_prompt(self, query: str, context: str,
+                      pro_args: str, con_args: str) -> str:
+        return f"""CONTEXT DOCUMENTS:
 {context}
 
 USER QUESTION: {query}
 
-PRO AGENT'S ARGUMENTS (Bullish):
+PRO AGENT'S ARGUMENTS:
 {pro_args}
 
-CON AGENT'S ARGUMENTS (Bearish):
+CON AGENT'S ARGUMENTS:
 {con_args}
 
-YOUR TASK: Provide a balanced final verdict considering BOTH perspectives.
+YOUR TASK: Provide a balanced final verdict.
+Start your response with: VERDICT: FAVORABLE / UNFAVORABLE / UNCERTAIN
 
 RESPONSE:"""
-    
+
     def _get_arguments(self, debate_state: DebateState, agent_name: str) -> str:
-        """Extract specific agent's arguments from all rounds"""
         all_args = []
-        
         for round_data in debate_state.rounds:
             if agent_name in round_data:
                 all_args.append(round_data[agent_name]['content'])
-        
         return "\n\n".join(all_args) if all_args else "No arguments"
-    
+
     def _extract_verdict(self, text: str) -> str:
-        """Extract verdict from judge's response"""
+        if text.startswith("[Error:"):
+            return "UNCERTAIN"
         text_upper = text.upper()
-        
-        if 'VERDICT:' in text_upper:
-            # Try to extract from "VERDICT: XXX" pattern
-            match = re.search(r'VERDICT:\s*(FAVORABLE|UNFAVORABLE|UNCERTAIN)', text_upper)
-            if match:
-                return match.group(1)
-        
-        # Fallback: look for keywords
-        if 'FAVORABLE' in text_upper and 'UNFAVORABLE' not in text_upper:
-            return 'FAVORABLE'
-        elif 'UNFAVORABLE' in text_upper:
-            return 'UNFAVORABLE'
-        else:
-            return 'UNCERTAIN'
-    
-    def _calculate_trust_score(self, pro_args: str, con_args: str, 
-                               verdict: str, context: List[Document]) -> float:
-        """
-        Calculate trust score based on multiple factors.
-        
-        Components:
-        - Citation rate (50%): How many claims have sources
-        - Argument balance (30%): Are both sides represented
-        - Data recency (20%): How fresh is the data
-        """
-        # Component 1: Citation rate
-        citation_rate = self._calculate_citation_rate(pro_args, con_args)
-        
-        # Component 2: Argument balance
-        balance_score = self._calculate_balance(pro_args, con_args)
-        
-        # Component 3: Data recency
-        recency_score = self._calculate_recency(context)
-        
-        # Weighted sum
-        trust_score = (
-            citation_rate * 0.5 +
-            balance_score * 0.3 +
-            recency_score * 0.2
+        match = re.search(
+            r'VERDICT:\s*(FAVORABLE|UNFAVORABLE|UNCERTAIN)', text_upper
         )
-        
-        return min(100.0, trust_score * 100)  # Convert to percentage
-    
-    def _calculate_citation_rate(self, pro_args: str, con_args: str) -> float:
-        """Calculate percentage of claims with citations"""
-        combined = pro_args + " " + con_args
-        
-        # Count citations [Source: ...]
+        if match:
+            return match.group(1)
+        if 'UNFAVORABLE' in text_upper:
+            return 'UNFAVORABLE'
+        if 'FAVORABLE' in text_upper:
+            return 'FAVORABLE'
+        return 'UNCERTAIN'
+
+    def _calculate_trust_score(self, pro_args: str, con_args: str,
+                                context: List[Document]) -> float:
+        citation_rate = self._calc_citation_rate(pro_args, con_args)
+        balance = self._calc_balance(pro_args, con_args)
+        recency = 0.8  # Default moderate recency
+
+        score = citation_rate * 0.5 + balance * 0.3 + recency * 0.2
+        return min(100.0, max(0.0, score * 100))
+
+    def _calc_citation_rate(self, pro: str, con: str) -> float:
+        combined = pro + " " + con
         citations = len(re.findall(r'\[Source:', combined, re.IGNORECASE))
-        
-        # Count sentences (rough estimate of claims)
         sentences = len(re.findall(r'[.!?]+', combined))
-        
         if sentences == 0:
             return 0.0
-        
-        # Ratio of citations to sentences
-        rate = min(1.0, citations / sentences)
-        return rate
-    
-    def _calculate_balance(self, pro_args: str, con_args: str) -> float:
-        """Calculate how balanced the arguments are"""
-        pro_words = len(pro_args.split())
-        con_words = len(con_args.split())
-        
-        if pro_words + con_words == 0:
+        return min(1.0, citations / sentences)
+
+    def _calc_balance(self, pro: str, con: str) -> float:
+        pw, cw = len(pro.split()), len(con.split())
+        if pw + cw == 0:
             return 0.0
-        
-        # Ideal is 50/50 split
-        pro_ratio = pro_words / (pro_words + con_words)
-        
-        # Score is higher when closer to 0.5
-        balance = 1.0 - abs(pro_ratio - 0.5) * 2
-        return balance
-    
-    def _calculate_recency(self, context: List[Document]) -> float:
-        """Calculate data recency score"""
-        if not context:
-            return 0.5  # Neutral if no context
-        
-        # For now, return moderate score
-        # In production, would parse dates from metadata
-        return 0.8  # Assume relatively recent data
-
-
-# Test function
-def test_judge_agent():
-    """Test Judge Agent"""
-    print("\n" + "=" * 60)
-    print("Testing Judge Agent")
-    print("=" * 60)
-    
-    # Create sample documents
-    sample_docs = [
-        Document(
-            text="Copper demand growing due to EV adoption.",
-            source="test.pdf",
-            chunk_id="test_1",
-            metadata={},
-            score=0.9
-        ),
-    ]
-    
-    # Create debate state with mock arguments
-    debate_state = DebateState(query="Should I invest in copper?")
-    debate_state.add_round('pro', """
-1. STRONG EV DEMAND
-   "EV adoption increased 23% in 2024" [Source: IEA Report 2024]
-   
-2. SUPPLY DEFICIT
-   "400,000 tonne deficit by 2026" [Source: USGS 2024]
-""")
-    
-    debate_state.add_round('con', """
-1. PRICE VOLATILITY
-   "Copper fluctuated $3.80-$4.70 in Q4" [Source: Yahoo Finance]
-   
-2. CHINA RISK
-   "China controls 54% of demand" [Source: Reuters 2025]
-""")
-    
-    # Initialize agent
-    agent = JudgeAgent()
-    
-    print(f"\nSynthesizing debate...\n")
-    
-    # Generate verdict
-    verdict = agent.generate(
-        query="Should I invest in copper?",
-        context=sample_docs,
-        debate_state=debate_state
-    )
-    
-    print("=" * 60)
-    print("JUDGE'S VERDICT:")
-    print("=" * 60)
-    print(verdict)
-    print("\n" + "=" * 60)
-    print(f"Extracted Verdict: {debate_state.verdict}")
-    print(f"Trust Score: {debate_state.trust_score:.1f}%")
-    print("=" * 60)
-
-
-if __name__ == "__main__":
-    test_judge_agent()
+        ratio = pw / (pw + cw)
+        return 1.0 - abs(ratio - 0.5) * 2
