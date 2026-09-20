@@ -2,7 +2,7 @@
 Con Agent - Skeptical Risk Analyst
 ===================================
 Identifies risks and bearish factors with evidence.
-Now powered by Google Gemini API (free tier).
+
 """
 
 import os
