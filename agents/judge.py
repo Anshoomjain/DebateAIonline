@@ -1,7 +1,7 @@
 """
 Judge Agent - Balanced Synthesizer
 ===================================
-Now powered by Google Gemini API (free tier).
+
 Uses gemini-1.5-pro for better reasoning on synthesis.
 """
 
