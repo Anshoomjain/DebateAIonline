@@ -1,7 +1,3 @@
-# DEBATEAI Agent Configuration
-# =============================
-# Add/remove agents by editing this file - no code changes needed!
-
 active_agents:
   - name: pro
     type: ProAgent
@@ -10,7 +6,7 @@ active_agents:
     temperature: 0.3
     max_tokens: 500
     description: "Optimistic analyst - finds positive evidence and bullish arguments"
-    
+
   - name: con
     type: ConAgent
     model: gemini-1.5-flash
@@ -18,7 +14,7 @@ active_agents:
     temperature: 0.4
     max_tokens: 500
     description: "Skeptical analyst - identifies risks and bearish factors"
-    
+
   - name: judge
     type: JudgeAgent
     model: gemini-1.5-flash
@@ -27,31 +23,24 @@ active_agents:
     max_tokens: 800
     description: "Balanced synthesizer - creates final verdict and trust score"
 
-# Future agents - uncomment to activate
- - name: fact_checker
-   type: FactCheckerAgent
-   model: gemini-1.5-flash
-   enabled: false
-   temperature: 0.1
-   max_tokens: 400
-   description: "Validates claims against source documents"
+  - name: fact_checker
+    type: FactCheckerAgent
+    model: gemini-1.5-flash
+    enabled: true
+    temperature: 0.1
+    max_tokens: 400
+    description: "Validates claims against source documents"
 
- - name: reporter
-   type: ReporterAgent
-   model: gemini-1.5-flash
-   enabled: false
-   temperature: 0.3
-   max_tokens: 1000
-   description: "Formats final output into structured report"
+  - name: reporter
+    type: ReporterAgent
+    model: gemini-1.5-flash
+    enabled: true
+    temperature: 0.3
+    max_tokens: 1000
+    description: "Formats final output into structured report"
 
-# Debate configuration
 debate_settings:
-  max_rounds: 3
-  round_names:
-    - "Initial Arguments"
-    - "Rebuttals"
-    - "Synthesis"
-  
-  timeout_per_agent: 60  # seconds
+  max_rounds: 5
+  timeout_per_agent: 60
   require_citations: true
   min_sources: 2
