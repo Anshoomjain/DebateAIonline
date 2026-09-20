@@ -16,7 +16,7 @@ from core.interfaces import BaseAgent, Document, DebateState
 
 genai.configure(api_key=os.environ.get("GEMINI_API_KEY", ""))
 # Using flash for judge too to stay within free limits
-_model = genai.GenerativeModel("gemini-3.6-flash")
+_model = genai.GenerativeModel("gemini-3.5-flash")
 
 
 class JudgeAgent(BaseAgent):
