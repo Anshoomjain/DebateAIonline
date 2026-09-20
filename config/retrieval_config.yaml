@@ -18,7 +18,7 @@ document_processing:
 embedding:
   model_name: "sentence-transformers/all-MiniLM-L6-v2"
   dimension: 384
-  device: "cuda"  # or "cpu"
+  device: "cpu" 
   batch_size: 32
   normalize: true
 
