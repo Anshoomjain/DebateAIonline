@@ -312,7 +312,7 @@ class EnhancedDebateOrchestrator(BaseOrchestrator):
     
     def _free_gpu_memory(self):
     """No-op on cloud — GPU not available."""
-    pass
+        pass
 
 
 # Demo function
