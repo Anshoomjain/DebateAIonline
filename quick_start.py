@@ -91,79 +91,31 @@ def check_dependencies():
 
 
 def check_ollama():
-    """Check if Ollama is running and models are available"""
+    """Check Gemini API key instead of Ollama."""
     print("\n" + "=" * 60)
-    print("Checking Ollama")
+    print("Checking Gemini API")
     print("=" * 60)
-    
-    try:
-        import ollama
-        
-        # Check connection
-        try:
-            models = ollama.list()
-            print("✅ Ollama is running")
-            
-            # Check required models
-            required_models = [
-                'llama3.1:8b',
-                'mistral:7b',
-                'phi3:medium',
-                'phi3:mini'
-            ]
-            
-            available_models = [m['name'] for m in models.get('models', [])]
-            
-            print(f"\n📦 Available models ({len(available_models)}):")
-            for model in available_models[:10]:  # Show first 10
-                print(f"   - {model}")
-            
-            missing_models = []
-            for model in required_models:
-                if not any(model in m for m in available_models):
-                    missing_models.append(model)
-            
-            if missing_models:
-                print(f"\n⚠️  Missing models:")
-                for model in missing_models:
-                    print(f"   - {model}")
-                print(f"\nDownload with: ollama pull {missing_models[0]}")
-                return False
-            else:
-                print(f"\n✅ All required models available!")
-                return True
-                
-        except Exception as e:
-            print(f"❌ Cannot connect to Ollama: {e}")
-            print("\nStart Ollama with: ollama serve")
-            return False
-            
-    except ImportError:
-        print("❌ Ollama Python package not installed")
-        print("Install with: pip install ollama")
+
+    import os
+    key = os.environ.get("GEMINI_API_KEY", "")
+    if key:
+        print("✅ GEMINI_API_KEY found")
+        return True
+    else:
+        print("❌ GEMINI_API_KEY not set!")
+        print("   Set it with: export GEMINI_API_KEY=your_key_here")
         return False
 
-
 def check_gpu():
-    """Check if GPU is available"""
+    """GPU not needed for cloud deployment."""
     print("\n" + "=" * 60)
-    print("Checking GPU")
+    print("Deployment Mode")
     print("=" * 60)
-    
-    try:
-        import torch
-        if torch.cuda.is_available():
-            print(f"✅ CUDA Available")
-            print(f"   GPU: {torch.cuda.get_device_name(0)}")
-            print(f"   VRAM: {torch.cuda.get_device_properties(0).total_memory / 1e9:.1f}GB")
-            return True
-        else:
-            print(f"⚠️  GPU not available, will use CPU")
-            print(f"   (This is fine, just slower)")
-            return True
-    except ImportError:
-        print(f"⚠️  PyTorch not installed, cannot check GPU")
-        return True
+    print("✅ Running in CPU/Cloud mode")
+    print("   GPU not required — using Gemini API for LLMs")
+    return True
+
+
 
 
 def check_data():
