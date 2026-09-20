@@ -14,7 +14,7 @@ import google.generativeai as genai
 from core.interfaces import BaseAgent, Document, DebateState
 
 
-genai.configure(api_key=os.environ.get("GEMINI_API_KEY", "AQ.Ab8RN6KTU8HJz9wkm3lsgipf2lHW5dz2vgRlBOXPxtBaz-RTHA"))
+genai.configure(api_key=os.environ.get("GEMINI_API_KEY", ""))
 # Using flash for judge too to stay within free limits
 _model = genai.GenerativeModel("gemini-1.5-flash")
 
