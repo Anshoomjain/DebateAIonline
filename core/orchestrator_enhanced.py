@@ -65,7 +65,6 @@ class EnhancedDebateOrchestrator(BaseOrchestrator):
             return {'debate_settings': {'max_rounds': 5}}
     
     def _setup_retrievers(self):
-        """Initialize retrieval system"""
         faiss = FAISSRetriever(device="cpu")  # Change to "cuda" if GPU available
         bm25 = BM25Retriever()
         
@@ -312,14 +311,8 @@ class EnhancedDebateOrchestrator(BaseOrchestrator):
         print(f"✓ Debate saved to {output_path}")
     
     def _free_gpu_memory(self):
-        """Free GPU memory between agent calls"""
-        try:
-            import torch
-            if torch.cuda.is_available():
-                torch.cuda.empty_cache()
-                torch.cuda.synchronize()
-        except Exception:
-            pass
+    """No-op on cloud — GPU not available."""
+    pass
 
 
 # Demo function
