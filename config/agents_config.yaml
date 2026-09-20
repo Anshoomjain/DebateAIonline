@@ -1,7 +1,7 @@
 active_agents:
   - name: pro
     type: ProAgent
-    model: gemini-3.6-flash
+    model: gemini-3.1-flash-lite
     enabled: true
     temperature: 0.3
     max_tokens: 500
@@ -9,7 +9,7 @@ active_agents:
 
   - name: con
     type: ConAgent
-    model: gemini-3.6-flash
+    model: gemini-3.1-flash-lite
     enabled: true
     temperature: 0.4
     max_tokens: 500
@@ -25,7 +25,7 @@ active_agents:
 
   - name: fact_checker
     type: FactCheckerAgent
-    model: gemini-3.6-flash
+    model: gemini-3.1-flash-lite
     enabled: true
     temperature: 0.1
     max_tokens: 400
@@ -33,7 +33,7 @@ active_agents:
 
   - name: reporter
     type: ReporterAgent
-    model: gemini-3.6-flash
+    model: gemini-3.1-flash-lite
     enabled: true
     temperature: 0.3
     max_tokens: 1000
