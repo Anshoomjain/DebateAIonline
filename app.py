@@ -102,7 +102,7 @@ def initialize_session_state():
 def create_trust_score_gauge(score: float):
     """Create a beautiful gauge chart for trust score"""
     fig = go.Figure(go.Indicator(
-        mode="gauge+number+delta",
+        mode="gauge+number",
         value=score,
         domain={'x': [0, 1], 'y': [0, 1]},
         title={'text': "Trust Score", 'font': {'size': 24}},
