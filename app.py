@@ -106,7 +106,6 @@ def create_trust_score_gauge(score: float):
         value=score,
         domain={'x': [0, 1], 'y': [0, 1]},
         title={'text': "Trust Score", 'font': {'size': 24}},
-        delta={'reference': 70, 'increasing': {'color': "green"}},
         gauge={
             'axis': {'range': [None, 100], 'tickwidth': 1, 'tickcolor': "darkblue"},
             'bar': {'color': "darkblue"},
