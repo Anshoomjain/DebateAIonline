@@ -38,19 +38,9 @@ def check_dependencies():
 
 
 def check_ollama():
-    """Check if Ollama is running"""
-    print("\nChecking Ollama...")
-    
-    try:
-        import ollama
-        ollama.list()
-        print("  ✅ Ollama is running")
-        return True
-    except Exception as e:
-        print(f"  ❌ Ollama not running: {e}")
-        print("\nStart Ollama with:")
-        print("  ollama serve")
-        return False
+    """Replaced by Gemini API — no local server needed."""
+    print("\n✅ Using Gemini API (no local server required)")
+    return True
 
 
 def check_data():
