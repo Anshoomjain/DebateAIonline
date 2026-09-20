@@ -47,7 +47,7 @@ class JudgeAgent(BaseAgent):
                     self.system_prompt + "\n\n" + prompt,
                     generation_config=genai.types.GenerationConfig(
                         temperature=0.2,
-                        max_output_tokens=800,
+                        max_output_tokens=2048,
                     )
                 )
                 verdict_text = response.text.strip()
