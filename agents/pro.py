@@ -47,7 +47,7 @@ class ProAgent(BaseAgent):
                     self.system_prompt + "\n\n" + prompt,
                     generation_config=genai.types.GenerationConfig(
                         temperature=0.3,
-                        max_output_tokens=500,
+                        max_output_tokens=1500,
                     )
                 )
                 return response.text.strip()
