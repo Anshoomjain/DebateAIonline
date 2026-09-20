@@ -311,7 +311,7 @@ class EnhancedDebateOrchestrator(BaseOrchestrator):
         print(f"✓ Debate saved to {output_path}")
     
     def _free_gpu_memory(self):
-    """No-op on cloud — GPU not available."""
+        """No-op on cloud — GPU not available."""
         pass
 
 
