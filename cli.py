@@ -217,57 +217,43 @@ class CLI:
         input("\nPress Enter to continue...")
     
     def system_status(self):
-        """Show system status"""
-        print("\n" + "=" * 70)
-        print("⚙️  SYSTEM STATUS")
-        print("=" * 70)
-        
-        # Check documents
-        print("\n📂 Document Status:")
-        if self.documents_indexed:
-            print("  ✅ Documents indexed and ready")
-            
-            # Count chunks
-            chunks_file = Path("data/processed/chunks.json")
-            if chunks_file.exists():
-                import json
-                with open(chunks_file, 'r') as f:
-                    chunks = json.load(f)
-                print(f"  📊 Total chunks: {len(chunks)}")
-        else:
-            print("  ⚠️  No documents indexed (use Option 1)")
-        
-        # Check agents
-        print("\n🤖 Agents Status:")
-        if self.orchestrator:
-            for agent_name in self.orchestrator.agents.keys():
-                print(f"  ✅ {agent_name.capitalize()} Agent: Ready")
-        else:
-            print("  ⚠️  Agents not initialized")
-        
-        # Check Ollama
-        print("\n🔧 Ollama Status:")
-        try:
-            import ollama
-            models = ollama.list()
-            print(f"  ✅ Connected")
-            print(f"  📦 Available models: {len(models.get('models', []))}")
-        except Exception as e:
-            print(f"  ❌ Error: {e}")
-        
-        # Check GPU
-        print("\n🎮 GPU Status:")
-        try:
-            import torch
-            if torch.cuda.is_available():
-                print(f"  ✅ CUDA Available")
-                print(f"  💾 VRAM: {torch.cuda.get_device_properties(0).total_memory / 1e9:.1f}GB")
-            else:
-                print(f"  ⚠️  CPU Mode (slower)")
-        except Exception:
-            print(f"  ⚠️  Could not detect GPU")
-        
-        input("\nPress Enter to continue...")
+    print("\n" + "=" * 70)
+    print("⚙️  SYSTEM STATUS")
+    print("=" * 70)
+
+    # Documents
+    print("\n📂 Document Status:")
+    if self.documents_indexed:
+        print("  ✅ Documents indexed and ready")
+        chunks_file = Path("data/processed/chunks.json")
+        if chunks_file.exists():
+            import json
+            with open(chunks_file, 'r') as f:
+                chunks = json.load(f)
+            print(f"  📊 Total chunks: {len(chunks)}")
+    else:
+        print("  ⚠️  No documents indexed (use Option 1)")
+
+    # Agents
+    print("\n🤖 Agents Status:")
+    if self.orchestrator:
+        for agent_name in self.orchestrator.agents.keys():
+            print(f"  ✅ {agent_name.capitalize()} Agent: Ready")
+    else:
+        print("  ⚠️  Agents not initialized")
+
+    # Gemini API
+    print("\n🔧 Gemini API Status:")
+    import os
+    if os.environ.get("GEMINI_API_KEY"):
+        print("  ✅ API Key found")
+    else:
+        print("  ❌ GEMINI_API_KEY not set")
+
+    print("\n🌐 Deployment: Cloud (CPU mode)")
+
+    input("\nPress Enter to continue...")
+    
     
     def show_examples(self):
         """Show example queries"""
