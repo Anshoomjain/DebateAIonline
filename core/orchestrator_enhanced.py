@@ -15,7 +15,7 @@ from core.hybrid_retriever import HybridRetriever
 from retrievers.faiss_retriever import FAISSRetriever
 from retrievers.bm25_retriever import BM25Retriever
 from agents.pro import ProAgent
-from agents.con import ConAgent
+from agents.con_agent import ConAgent
 from agents.judge import JudgeAgent
 from agents.fact_checker import FactCheckerAgent
 from agents.reporter import ReporterAgent
