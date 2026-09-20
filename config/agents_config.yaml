@@ -5,7 +5,7 @@
 active_agents:
   - name: pro
     type: ProAgent
-    model: llama3.1:8b
+    model: gemini-1.5-flash
     enabled: true
     temperature: 0.3
     max_tokens: 500
@@ -13,7 +13,7 @@ active_agents:
     
   - name: con
     type: ConAgent
-    model: mistral:7b
+    model: gemini-1.5-flash
     enabled: true
     temperature: 0.4
     max_tokens: 500
@@ -21,7 +21,7 @@ active_agents:
     
   - name: judge
     type: JudgeAgent
-    model: llama3.1:8b
+    model: gemini-1.5-flash
     enabled: true
     temperature: 0.2
     max_tokens: 800
@@ -30,7 +30,7 @@ active_agents:
 # Future agents - uncomment to activate
  - name: fact_checker
    type: FactCheckerAgent
-   model: phi3:medium
+   model: gemini-1.5-flash
    enabled: false
    temperature: 0.1
    max_tokens: 400
@@ -38,7 +38,7 @@ active_agents:
 
  - name: reporter
    type: ReporterAgent
-   model: phi3:mini
+   model: gemini-1.5-flash
    enabled: false
    temperature: 0.3
    max_tokens: 1000
